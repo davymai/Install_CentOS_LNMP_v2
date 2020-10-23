@@ -70,7 +70,7 @@ function INSTALL() {
     #    ./config $5 || exit 1
     elif [ $1 = libzip ]; then
         mkdir build && cd build
-        cmake3 ..
+        CMAKE_INSTALL_PREFIX=/usr/local/env/libzip cmake3 ..
     elif [ $1 = amqp ]; then
         phpize
         ./configure
@@ -122,10 +122,13 @@ function INSTALL() {
     INFO 36 3 "Compile $1......"
     make -j6 || exit 1 && INFO 34 4 "Install $1......"
     make install && INFO 33 4 "$1 installation is successful......"
-    if [ $1 = jemalloc ]; then
-        sed -i '$ a\PKG_CONFIG_PATH=/usr/lib64/pkgconfig/:/usr/share/pkgconfig/:/usr/local/lib64/pkgconfig/:/usr/local/lib/pkgconfig/' /etc/profile
-        sed -i '$ a\export PKG_CONFIG_PATH' /etc/profile
+    if [ $1 = tengine ]; then
+        echo "/usr/local/lib" >> /etc/ld.so.conf
+        echo "/usr/local/lib64" >> /etc/ld.so.conf
+        echo "PKG_CONFIG_PATH=/usr/lib64/pkgconfig/:/usr/local/lib64/pkgconfig/:/usr/local/lib/pkgconfig/" >> /etc/profile
+        echo "export PKG_CONFIG_PATH" >> /etc/profile
         source /etc/profile
+        /sbin/ldconfig && INFO 33 4 "Add $1 library file to /etc/profile......"
     fi
     if [ $1 = openssl ]; then
         echo $ENV_PATH/openssl/lib/ >> /etc/ld.so.conf
@@ -140,10 +143,6 @@ function INSTALL() {
         INFO 33 4 "Add $1 soft link to /usr/bin/......"
         echo "/usr/local/lib" >> /etc/ld.so.conf
         echo "/usr/local/lib64" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
-    fi
-    if [ $1 = libxml2 ]; then
-        echo "/usr/local/env/libxml2/lib" >> /etc/ld.so.conf
         /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = libmcrypt ]; then
@@ -295,14 +294,15 @@ function INSTALL_BRANCH() {
         #    INSTALL jemalloc " " "$COMPILE_DIR" "$i" "--prefix=$ENV_PATH/jemalloc"
         #elif [ $1 = $SERVER_NAME -a $1 = zlib ]; then
         #    INSTALL zlib "" "$COMPILE_DIR" "$i" "--prefix=$ENV_PATH/zlib"
-        #elif [ $1 = $SERVER_NAME -a $1 = pcre ]; then
-        #    INSTALL pcre " " "$COMPILE_DIR" "$i" "--prefix=$ENV_PATH/pcre"
+
         if [ $1 = $SERVER_NAME -a $1 = tengine ]; then
             INSTALL nginx "$HTTP_YUM" "$COMPILE_DIR" "$i" "$HTTP_PARAMETERS"
             CONFIG_HTTP
         elif [ $1 = $SERVER_NAME -a $1 = mariadb ]; then
             INSTALL mysql "$MYSQL_YUM" "$COMPILE_DIR" "$i" "$MYSQL_PARAMETERS"
             CONFIG_MYSQL
+        elif [ $1 = $SERVER_NAME -a $1 = nettle ]; then
+            INSTALL nettle " " "$COMPILE_DIR" "$i" ""
         elif [ $1 = $SERVER_NAME -a $1 = libzip ]; then
             INSTALL libzip "$PHP7_YUM" "$COMPILE_DIR" "$i" ""
         elif [ $1 = $SERVER_NAME -a $1 = php ]; then
@@ -331,7 +331,7 @@ function INSTALL_BRANCH() {
             INSTALL yar " " "$COMPILE_DIR" "$i" " "
             CONFIG_PHP "$COMPILE_DIR"
         elif [ $1 = $SERVER_NAME -a $1 = libevent ]; then
-            INSTALL libevent " " "$COMPILE_DIR" "$i" "-prefix=$ENV_PATH/libevent"
+            INSTALL libevent " " "$COMPILE_DIR" "$i" ""
         elif [ $1 = $SERVER_NAME -a $1 = memcached ]; then
             INSTALL memcached " " "$COMPILE_DIR" "$i" "$MEMCACHED_PARAMETERS"
             CONFIG_MEMCACHED "$COMPILE_DIR"
@@ -393,6 +393,7 @@ function MOD_CASE() {
                     groupdel games
                     groupdel video
                     groupdel ftp
+                    INSTALL_BRANCH nettle
                     INSTALL_BRANCH libzip
                     INSTALL_BRANCH php
                     rm -rf /usr/bin/phpize
@@ -442,11 +443,11 @@ SOURCE_PATH="$(
     pwd
 )/install_tar"
 #源码包列表
-TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz openssl-1.1.1h.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz)
+TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz openssl-1.1.1h.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz nettle-3.6.tar.gz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz)
 #Nginx,Mysql,PHP,memcached,Redis yum安装依赖包
 HTTP_YUM="gcc gcc-c++ bzip2"
-MYSQL_YUM="bison bison-devel zlib-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel openssl-devel libevent-devel libaio-devel"
-PHP7_YUM="autoconf cmake cmake3 libxml2-devel bzip2-devel libcurl-devel libjpeg-devel libpng-devel freetype-devel gmp-devel libmcrypt-devel readline-devel libxslt-devel zlib-devel glibc-devel glib2-devel ncurses curl gdbm-devel db4-devel libXpm-devel libX11-devel gd-devel gmp-devel expat-devel xmlrpc-c xmlrpc-c-devel libicu-devel libmemcached-devel librabbitmq librabbitmq-devel ImageMagick-devel libevent-devel libyaml libyaml-devel libssh2-devel libsqlite3x-devel oniguruma-devel openldap-devel"
+MYSQL_YUM="bison-devel zlib-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel openssl-devel libaio-devel"
+PHP7_YUM="autoconf cmake3 mbedtls-devel libxml2-devel bzip2-devel libcurl-devel libjpeg-devel libpng-devel freetype-devel gmp-devel libmcrypt-devel readline-devel libxslt-devel zlib-devel glibc-devel glib2-devel ncurses curl gdbm-devel db4-devel libXpm-devel libX11-devel gd-devel gmp-devel expat-devel xmlrpc-c xmlrpc-c-devel libicu-devel libmemcached-devel librabbitmq librabbitmq-devel ImageMagick-devel libyaml libyaml-devel libssh2-devel libsqlite3x-devel oniguruma-devel openldap-devel"
 MEMCACHED_YUM=""
 REDIS_YUM="kernel-devel centos-release-scl devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils"
 #Nginx编译参数
@@ -481,27 +482,12 @@ HTTP_PARAMETERS="\
 "
 #PHP编译参数
 PHP7_PARAMETERS="\
---prefix=$INSTALL_PATH/php/74 \
---with-config-file-path=$INSTALL_PATH/php/74/etc \
+--prefix=/server/lnmp/php/74 \
+--with-config-file-path=/server/lnmp/php/74/etc \
 --with-fpm-user=www \
 --with-fpm-group=www \
 --enable-bcmath \
 --enable-calendar \
---with-curl \
---with-gettext \
---with-iconv \
---with-kerberos \
---with-libdir=lib64 \
---with-mhash \
---with-mysqli=mysqlnd \
---with-openssl \
---with-pdo-mysql=mysqlnd \
---with-pdo-sqlite \
---with-pear \
---with-xmlrpc \
---with-xsl \
---with-zlib \
---with-zlib-dir \
 --enable-exif \
 --enable-fpm \
 --enable-gd \
@@ -518,7 +504,24 @@ PHP7_PARAMETERS="\
 --enable-sysvsem \
 --enable-sysvshm \
 --enable-xml \
---disable-debug \
+--with-bz2 \
+--with-curl \
+--with-gettext \
+--with-iconv \
+--with-kerberos \
+--with-libdir=lib64 \
+--with-mhash \
+--with-mysqli=mysqlnd \
+--with-openssl \
+--with-pdo-mysql=mysqlnd \
+--with-pdo-sqlite \
+--with-pear \
+--with-xmlrpc \
+--with-xsl \
+--with-zip \
+--with-zlib \
+--with-zlib-dir=lib64 \
+--disable-debug
 "
 #mysql编译参数
 MYSQL_PARAMETERS="\
@@ -544,7 +547,7 @@ MYSQL_PARAMETERS="\
 #memcached编译参数
 MEMCACHED_PARAMETERS="\
 --prefix=$INSTALL_PATH/memcached \
---with-libevent=$ENV_PATH/libevent \
+--with-libevent=/usr/local/lib \
 "
 #redis编译参数
 REDIS_PARAMETERS="\
