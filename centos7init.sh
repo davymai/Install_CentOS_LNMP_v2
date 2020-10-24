@@ -131,7 +131,7 @@ selinux_config() {
 ulimit_config() {
     echo "Starting config ulimit..."
     echo "ulimit -SHn 655360" >> /etc/rc.local
-    cat >> /etc/security/limits.conf << EOF
+    cat > /etc/security/limits.conf << EOF
 * soft nproc 102400
 * hard nproc 102400
 * soft nofile 102400
@@ -146,15 +146,48 @@ bashrc_config() {
     echo "Starting bashrc config..."
     echo "export PS1='\[\e[37;1m\][\[\e[35;49;1m\]\u\[\e[32;1m\]@\\[\e[34;1m\]\h \[\e[37;1m\]➜ \[\e[31;1m\]\w \[\e[33;1m\]\t\[\e[37;1m\]]\[\e[32;1m\]\$\[\e[m\] '" >> /etc/bashrc
     sed -i '$ a\set -o vi\nalias vi="vim"\nalias ll="ls -ahlF --color=auto --time-style=long-iso"\nalias ls="ls --color=auto --time-style=long-iso"\nalias grep="grep --color=auto"\nalias fgrep="fgrep --color=auto"\nalias egrep="egrep --color=auto"' /etc/bashrc
-    grep 'alias wget="axel -a"' /etc/bashrc > /dev/null
+    grep 'alias axel="axel -a"' /etc/bashrc > /dev/null
     if [ $? -ne 0 ]; then
-        sed -i '$ a\alias wget="axel -a"' /etc/bashrc
+        sed -i '$ a\alias axel="axel -a"' /etc/bashrc
     fi
     . /etc/bashrc
     echo "bashrc set OK!!"
     echo "系统变量设在完成！！"
     echo ""
     sleep 3
+}
+
+# install zsh - oh-my-zsh
+install_zsh() {
+    INFO 33 1.5 "Starting install zsh..."
+    if [ $(rpm -qa | grep zsh | wc -l) -ne 0 ]; then
+        INFO 31 1.5 "zsh already installed..."
+    else
+        yum install -y git zsh autojump-zsh zsh-syntax-highlighting &&
+            INFO 36 1.5 "zsh installation is successful..."
+    fi
+    INFO 33 1.5 "Starting install oh-my-zsh..."
+    if [ ! -d "~/.oh-my-zsh" ]; then
+        git clone https://gitee.com/mirrors/oh-my-zsh.git ~/.oh-my-zsh &&
+            cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc &&
+            usermod -s /bin/zsh $(whoami) &&
+            axel -a -o ~/.oh-my-zsh/themes/pandaman.zsh-theme "https://drive.kcytech.com/d/f/webapi/entry.cgi/pandaman.zsh-theme?api=SYNO.SynologyDrive.Files&method=download&version=2&files=%5B%22id%3A583362122002513898%22%5D&force_download=true&json_error=true&_dc=1603545240612" &&
+            cd ~/.oh-my-zsh/custom
+        pwd
+        git clone https://gitee.com/pankla/zsh-autosuggestions.git ./plugins/zsh-autosuggestions &&
+            INFO 36 1.5 "oh-my-zsh installation is successful..."
+    else
+        INFO 31 1.5 "oh-my-zsh already installed..."
+    fi
+}
+
+# install zsh - oh-my-zsh
+config_zsh() {
+    INFO 33 1.5 "Starting config oh-my-zsh..."
+    sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' ~/.zshrc
+    sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" ~/.zshrc
+    sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=/usr/share/zsh-syntax-highlighting/highlighters\nsource /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh' ~/.zshrc
+    INFO 36 1.5 "oh-my-zsh configuration is successful..."
 }
 
 # sshd config
@@ -280,6 +313,8 @@ main() {
     selinux_config
     ulimit_config
     bashrc_config
+    install_zsh
+    config_zsh
     sshd_config
     disable_firewalld
     vim_config
