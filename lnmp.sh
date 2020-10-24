@@ -19,7 +19,7 @@ export PATH
 function INFO() {
     echo -e "\e[$1;49;1m: $3 \033[39;49;0m"
     sleep "$2"
-    echo " "
+    echo ""
 }
 #非root用户不能执行该脚本
 if [ "$UID" != 0 ]; then
