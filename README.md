@@ -41,7 +41,7 @@ Memcached: memcached-1.6.7.tar.gz
 >systemctl (start|stop|restart|status) nginx|mysql|php|redis|memcached 
 
 ## oh-my-zsh theme
-![普通用户登录](https://github.com/davymai/Install_CentOS_LNMP_v2/blob/latest/conf/OMZ-theme/theme-Screenshot.png)
+![普通用户登录](https://gitee.com/xmyunwei/Install_CentOS_LNMP_v2/blob/latest/conf/OMZ-theme/theme-Screenshot.png)
 
-![root用户登录](https://github.com/davymai/Install_CentOS_LNMP_v2/blob/latest/conf/OMZ-theme/theme-Screenshot1.png)
+![root用户登录](https://gitee.com/xmyunwei/Install_CentOS_LNMP_v2/blob/latest/conf/OMZ-theme/theme-Screenshot1.png)
 
