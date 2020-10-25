@@ -160,6 +160,8 @@ bashrc_config() {
 # install zsh - oh-my-zsh
 install_zsh() {
     INFO 33 1.5 "Starting install zsh..."
+    #LNMP配置文件的目录
+    CONF_PATH="/data/lnmp/conf"
     if [ $(rpm -qa | grep zsh | wc -l) -ne 0 ]; then
         INFO 31 1.5 "zsh already installed..."
     else
@@ -171,7 +173,9 @@ install_zsh() {
         git clone https://gitee.com/mirrors/oh-my-zsh.git ~/.oh-my-zsh &&
             cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc &&
             usermod -s /bin/zsh $(whoami) &&
-            axel -a -o ~/.oh-my-zsh/themes/pandaman.zsh-theme "https://drive.kcytech.com/d/f/webapi/entry.cgi/pandaman.zsh-theme?api=SYNO.SynologyDrive.Files&method=download&version=2&files=%5B%22id%3A583362122002513898%22%5D&force_download=true&json_error=true&_dc=1603545240612" &&
+            #LNMP配置文件的目录
+            CONF_PATH="/data/lnmp/conf"
+        cp $CONF_PATH/OMZ-theme/pandaman.zsh-theme ~/.oh-my-zsh/themes/pandaman.zsh-theme &&
             cd ~/.oh-my-zsh/custom
         pwd
         git clone https://gitee.com/pankla/zsh-syntax-highlighting.git ./plugins/zsh-syntax-highlighting

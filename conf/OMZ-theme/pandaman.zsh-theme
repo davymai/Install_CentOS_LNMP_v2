@@ -14,7 +14,7 @@ if [ "$UID" = 0 ]; then
     PROMPTPREFIX="%{$M%}%B-!-"
     HOSTNAME="%{$W%}%B%m"
     local ret_status="%(?:%{$Y%}%Broot %{$M%}%B» :%{$Y%}%Broot %{$M%}%B» )"
-    DATETIME="%{$W%}%B[%{$G%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]%{$M%}WARNING: Now it's a root!"
+    DATETIME="%{$W%}%B[%{$G%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]%{$M%} WARNING: Now root login !"
 else
     PROMPTPREFIX="#"
     HOSTNAME="%{$B%}%B%m"
