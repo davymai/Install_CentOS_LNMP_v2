@@ -66,11 +66,9 @@ function INSTALL() {
         ./configure $5 || exit 1
     elif [ $1 = mysql ]; then
         cmake $5 || exit 1
-    #elif [ $1 = openssl ]; then
-    #    ./config $5 || exit 1
     elif [ $1 = libzip ]; then
         mkdir build && cd build
-        CMAKE_INSTALL_PREFIX=/usr/local/env/libzip cmake3 ..
+        cmake3 .. || exit 1
     elif [ $1 = amqp ]; then
         phpize
         ./configure
@@ -122,54 +120,51 @@ function INSTALL() {
     INFO 36 3 "Compile $1......"
     make -j6 || exit 1 && INFO 34 4 "Install $1......"
     make install && INFO 33 4 "$1 installation is successful......"
-    if [ $1 = tengine ]; then
+    if [ $1 = nginx ]; then
         echo "/usr/local/lib" >> /etc/ld.so.conf
         echo "/usr/local/lib64" >> /etc/ld.so.conf
-        echo "PKG_CONFIG_PATH=/usr/lib64/pkgconfig/:/usr/local/lib64/pkgconfig/:/usr/local/lib/pkgconfig/" >> /etc/profile
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        echo "PKG_CONFIG_PATH=/usr/lib64/pkgconfig/:/usr/local/lib64/pkgconfig/:/usr/local/lib/pkgconfig/:/usr/share/pkgconfig" >> /etc/profile
         echo "export PKG_CONFIG_PATH" >> /etc/profile
         source /etc/profile
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to /etc/profile......"
+        ldconfig && INFO 33 4 "Add $1 PKG_CONFIG_PATH to /etc/profile......"
     fi
-    if [ $1 = openssl ]; then
-        echo $ENV_PATH/openssl/lib/ >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
-        ln -s $ENV_PATH/openssl/lib/libssl.so.1.1 /usr/lib64/
-        ln -s $ENV_PATH/openssl/lib/libcrypto.so.1.1 /usr/lib64/
-        sed -i 's#PKG_CONFIG_PATH=.*#&:/usr/local/env/openssl/lib/pkgconfig/#g' /etc/profile
+    if [ $1 = libzip ]; then
         source /etc/profile
+        ldconfig && INFO 33 4 "Add $1 PKG_CONFIG_PATH to /etc/profile......"
     fi
     if [ $1 = php ]; then
         ln -s $INSTALL_PATH/php/74/bin/php /usr/bin/
         INFO 33 4 "Add $1 soft link to /usr/bin/......"
         echo "/usr/local/lib" >> /etc/ld.so.conf
         echo "/usr/local/lib64" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = libmcrypt ]; then
         echo "/usr/local/env/libmcrypt/lib" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = mhash ]; then
         echo "/usr/local/lib" >> /etc/ld.so.conf
         echo "/usr/local/lib64" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = gettext ]; then
         echo "/usr/local/env/gettext/lib" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = gd ]; then
         sed -i '27 a void (*data);' /usr/local/env/gd/include/gd_io.h
         echo "/usr/local/env/gd/lib" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = freetype ]; then
         echo "/usr/local/env/freetype/lib" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = jpegsrc.v6b.tar.gz ]; then
         echo "/usr/local/env/jpeg/lib" >> /etc/ld.so.conf
-        /sbin/ldconfig && INFO 33 4 "Add jpeg library file to ld.so.conf......"
+        ldconfig && INFO 33 4 "Add jpeg library file to ld.so.conf......"
     fi
 }
 
@@ -232,7 +227,7 @@ function CONFIG_MYSQL() {
     sed -i 's/chown $user "$pamtooldir/#&/' $INSTALL_PATH/mysql/scripts/mariadb-install-db
     sed -i 's/chmod 0700 "$pamtooldir/#&/' $INSTALL_PATH/mysql/scripts/mariadb-install-db
     sleep 1
-    cp -rf $CONF_PATH/mariadb/my.cnf $INSTALL_PATH/mysql/conf/my.cnf
+    cp -r $CONF_PATH/mariadb/my.cnf $INSTALL_PATH/mysql/conf/my.cnf
     chown -R mysql:mysql $INSTALL_PATH/data
     chown -R mysql:mysql $INSTALL_PATH/mysql
     echo ""
@@ -258,9 +253,11 @@ function CONFIG_MYSQL() {
 #CONFIG_REDIS函数用来定义redis的配置。
 function CONFIG_MEMCACHED() {
     useradd -M -s /sbin/nologin memcached
-    cp -rf $CONF_PATH/memcached/service.sh /etc/init.d/memcached
+    cp -r $CONF_PATH/memcached/service.sh /etc/init.d/memcached
     chmod +x /etc/init.d/memcached
     INFO 35 2 "Memcached configuration is complete......"
+    chown -R memcached:memcached /server/lnmp/memcached
+    ln -s /usr/local/lib/libevent-2.1.so.7 /usr/lib64/libevent-2.1.so.7
     chkconfig --add memcached
     systemctl start memcached
     INFO 33 "2.5" "Memcached startup success......"
@@ -288,13 +285,6 @@ function INSTALL_BRANCH() {
     for i in ${TAR_NAME[@]}; do
         SERVER_NAME=$(echo $i | awk -F "-[0-9]" '{print $1}')
         COMPILE_DIR=$(echo $i | awk -F ".tar.gz|.tgz" '{print $1}')
-        #if [ $1 = $SERVER_NAME -a $1 = openssl ]; then
-        #    INSTALL openssl " " "$COMPILE_DIR" "$i" "--prefix=$ENV_PATH/openssl"
-        #elif [ $1 = $SERVER_NAME -a $1 = jemalloc ]; then
-        #    INSTALL jemalloc " " "$COMPILE_DIR" "$i" "--prefix=$ENV_PATH/jemalloc"
-        #elif [ $1 = $SERVER_NAME -a $1 = zlib ]; then
-        #    INSTALL zlib "" "$COMPILE_DIR" "$i" "--prefix=$ENV_PATH/zlib"
-
         if [ $1 = $SERVER_NAME -a $1 = tengine ]; then
             INSTALL nginx "$HTTP_YUM" "$COMPILE_DIR" "$i" "$HTTP_PARAMETERS"
             CONFIG_HTTP
@@ -302,9 +292,9 @@ function INSTALL_BRANCH() {
             INSTALL mysql "$MYSQL_YUM" "$COMPILE_DIR" "$i" "$MYSQL_PARAMETERS"
             CONFIG_MYSQL
         elif [ $1 = $SERVER_NAME -a $1 = nettle ]; then
-            INSTALL nettle " " "$COMPILE_DIR" "$i" ""
+            INSTALL nettle "$PHP7_YUM" "$COMPILE_DIR" "$i" ""
         elif [ $1 = $SERVER_NAME -a $1 = libzip ]; then
-            INSTALL libzip "$PHP7_YUM" "$COMPILE_DIR" "$i" ""
+            INSTALL libzip " " "$COMPILE_DIR" "$i" ""
         elif [ $1 = $SERVER_NAME -a $1 = php ]; then
             INSTALL php7 " " "$COMPILE_DIR" "$i" "$PHP7_PARAMETERS"
         elif [ $1 = $SERVER_NAME -a $1 = amqp ]; then
@@ -362,10 +352,6 @@ function MOD_CASE() {
                     groupdel games
                     groupdel video
                     groupdel ftp
-                    #INSTALL_BRANCH jemalloc
-                    #INSTALL_BRANCH openssl
-                    #INSTALL_BRANCH pcre
-                    #INSTALL_BRANCH zlib
                     INSTALL_BRANCH tengine
                     ;;
                 "mysql install")
@@ -447,7 +433,7 @@ TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz openssl-1.1.1h.tar.gz pcre-
 #Nginx,Mysql,PHP,memcached,Redis yum安装依赖包
 HTTP_YUM="gcc gcc-c++ bzip2"
 MYSQL_YUM="bison-devel zlib-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel openssl-devel libaio-devel"
-PHP7_YUM="autoconf cmake3 mbedtls-devel libxml2-devel bzip2-devel libcurl-devel libjpeg-devel libpng-devel freetype-devel gmp-devel libmcrypt-devel readline-devel libxslt-devel zlib-devel glibc-devel glib2-devel ncurses curl gdbm-devel db4-devel libXpm-devel libX11-devel gd-devel gmp-devel expat-devel xmlrpc-c xmlrpc-c-devel libicu-devel libmemcached-devel librabbitmq librabbitmq-devel ImageMagick-devel libyaml libyaml-devel libssh2-devel libsqlite3x-devel oniguruma-devel openldap-devel"
+PHP7_YUM="autoconf cmake3 m4 mbedtls-devel libxml2-devel bzip2-devel libcurl-devel libjpeg-devel libpng-devel freetype-devel gmp-devel libmcrypt-devel readline-devel libxslt-devel zlib-devel glibc-devel glib2-devel ncurses curl gdbm-devel db4-devel libXpm-devel libX11-devel gd-devel gmp-devel expat-devel xmlrpc-c xmlrpc-c-devel libicu-devel libmemcached-devel librabbitmq librabbitmq-devel ImageMagick-devel libyaml libyaml-devel libssh2-devel libsqlite3x-devel oniguruma-devel openldap-devel"
 MEMCACHED_YUM=""
 REDIS_YUM="kernel-devel centos-release-scl devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils"
 #Nginx编译参数
@@ -547,7 +533,7 @@ MYSQL_PARAMETERS="\
 #memcached编译参数
 MEMCACHED_PARAMETERS="\
 --prefix=$INSTALL_PATH/memcached \
---with-libevent=/usr/local/lib \
+--with-libevent=/usr/local/lib/ \
 "
 #redis编译参数
 REDIS_PARAMETERS="\

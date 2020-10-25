@@ -150,7 +150,7 @@ bashrc_config() {
     if [ $? -ne 0 ]; then
         sed -i '$ a\alias axel="axel -a"' /etc/bashrc
     fi
-    . /etc/bashrc
+    source /etc/bashrc
     echo "bashrc set OK!!"
     echo "系统变量设在完成！！"
     echo ""
@@ -174,6 +174,7 @@ install_zsh() {
             axel -a -o ~/.oh-my-zsh/themes/pandaman.zsh-theme "https://drive.kcytech.com/d/f/webapi/entry.cgi/pandaman.zsh-theme?api=SYNO.SynologyDrive.Files&method=download&version=2&files=%5B%22id%3A583362122002513898%22%5D&force_download=true&json_error=true&_dc=1603545240612" &&
             cd ~/.oh-my-zsh/custom
         pwd
+        git clone https://gitee.com/pankla/zsh-syntax-highlighting.git ./plugins/zsh-syntax-highlighting
         git clone https://gitee.com/pankla/zsh-autosuggestions.git ./plugins/zsh-autosuggestions &&
             INFO 36 1.5 "oh-my-zsh installation is successful..."
     else
@@ -186,7 +187,7 @@ config_zsh() {
     INFO 33 1.5 "Starting config oh-my-zsh..."
     sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' ~/.zshrc
     sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" ~/.zshrc
-    sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=/usr/share/zsh-syntax-highlighting/highlighters\nsource /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh' ~/.zshrc
+    sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh' ~/.zshrc
     INFO 36 1.5 "oh-my-zsh configuration is successful..."
 }
 
