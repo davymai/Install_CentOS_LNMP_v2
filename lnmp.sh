@@ -174,13 +174,13 @@ function CONFIG_HTTP() {
     useradd -M -s /sbin/nologin www
     echo -e "<?php\nphpinfo();\n?>" > $INSTALL_PATH/nginx/html/phpinfo.php
     mkdir -p /server/wwwlogs
-    mkdir -p $INSTALL_PATH/nginx/stop
+    mkdir -p $INSTALL_PATH/stop
     mkdir -p $INSTALL_PATH/nginx/tmp/client_body_temp
     mkdir -p $INSTALL_PATH/nginx/conf/vhost
     mkdir -p $INSTALL_PATH/nginx/conf/rewrite
     chown -R www:www $INSTALL_PATH/nginx/html
     chown -R www:www /server/wwwlogs
-    cp -rf $CONF_PATH/nginx/stop/*.html $INSTALL_PATH/nginx/stop/
+    cp -rf $CONF_PATH/nginx/stop/*.html $INSTALL_PATH/stop/
     cp -rf $CONF_PATH/nginx/rewrite/*.conf $INSTALL_PATH/nginx/conf/rewrite/
     cp -rf $CONF_PATH/nginx/conf/*.conf $INSTALL_PATH/nginx/conf/
     cp -rf $CONF_PATH/nginx/vhost/*.conf $INSTALL_PATH/nginx/conf/vhost/
@@ -441,7 +441,7 @@ SOURCE_PATH="$(
 TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz openssl-1.1.1h.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz nettle-3.6.tar.gz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz phpMyAdmin-5.0.4.tar.gz)
 #Nginx,Mysql,PHP,memcached,Redis yum安装依赖包
 HTTP_YUM="gcc gcc-c++ bzip2"
-MYSQL_YUM="bison-devel zlib-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel openssl-devel libaio-devel"
+MYSQL_YUM="bison-devel zlib-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel libaio-devel"
 PHP7_YUM="autoconf cmake3 m4 mbedtls-devel libxml2-devel bzip2-devel libcurl-devel libjpeg-devel libpng-devel freetype-devel gmp-devel libmcrypt-devel readline-devel libxslt-devel zlib-devel glibc-devel glib2-devel ncurses curl gdbm-devel db4-devel libXpm-devel libX11-devel gd-devel gmp-devel expat-devel xmlrpc-c xmlrpc-c-devel libicu-devel libmemcached-devel librabbitmq librabbitmq-devel ImageMagick-devel libyaml libyaml-devel libssh2-devel libsqlite3x-devel oniguruma-devel openldap-devel"
 MEMCACHED_YUM=""
 REDIS_YUM="kernel-devel centos-release-scl devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils"
