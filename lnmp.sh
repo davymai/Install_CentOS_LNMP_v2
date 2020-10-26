@@ -33,7 +33,7 @@ function USAGE() {
     basename=$(basename "$0")
     INFO \
         36 "0" \
-        "$(echo -e "Usage: \n\n./$basename ( nginx|mysql|php|memcached|redis ) install \nsystemctl (start|stop|restart|status) nginx|mysql|php|memcached|redis \n")"
+        "$(echo -e "Usage: \n\n./$basename ( nginx|mysql|php|memcached|redis ) install \nsystemctl (start|stop|restart|status) nginx|mysqld|php|memcached|redis \n")"
 }
 #YUM_INSTALL函数安装依赖包，可反复调用，$@表示所有参数都分别被双引号引住"$1","$2"，而$*表示所有这些参数都被双引号引住"$1$2"
 function YUM_INSTALL() {
@@ -217,6 +217,7 @@ function CONFIG_MYSQL() {
     INFO 32 3 "Configure the mysql......"
     useradd -M -s /sbin/nologin mysql
     ln -s $INSTALL_PATH/mysql/bin/mysql /usr/bin/mysql
+    ln -s $INSTALL_PATH/mysql/bin/mysqld /usr/bin/mysqld
     ln -s $INSTALL_PATH/mysql/bin/mysqld_safe /usr/bin/mysqld_safe
     sleep 1
     mkdir -p $INSTALL_PATH/data
@@ -230,12 +231,12 @@ function CONFIG_MYSQL() {
     chown -R mysql:mysql $INSTALL_PATH/data
     chown -R mysql:mysql $INSTALL_PATH/mysql
     echo ""
-    sleep 2
+    sleep 1
     ./scripts/mysql_install_db \
         --user=mysql \
         --basedir=$INSTALL_PATH/mysql \
         --datadir=$INSTALL_PATH/data \
-        --defaults-file=/etc
+        --defaults-file=/etc/my.cnf
     cp $INSTALL_PATH/mysql/support-files/mysql.server /etc/init.d/mysqld
     chmod +x /etc/init.d/mysqld
     sleep 2
