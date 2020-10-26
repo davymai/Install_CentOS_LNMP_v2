@@ -40,4 +40,8 @@ Memcached: memcached-1.6.7.tar.gz
 
 >systemctl (start|stop|restart|status) nginx|mysql|php|redis|memcached 
 
+## oh-my-zsh theme
+![普通用户登录](https://xmyunwei.com/wp-content/uploads/2020/10/WX20201025-183925@2x-1024x551.png)
+
+![root用户登录](https://xmyunwei.com/wp-content/uploads/2020/10/WX20201025-185450@2x-1024x551.png)
 
