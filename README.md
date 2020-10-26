@@ -16,6 +16,9 @@ log:     /server/wwwlog/
 
 phpMyAdmin: /server/lnmp/phpmyadmin
 
+
+phpMyAdmin访问地址：http://myserver.com:887
+
 ---
 
 ### centos7init.sh
