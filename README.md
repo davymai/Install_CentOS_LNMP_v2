@@ -1,7 +1,23 @@
 # Install_CentOS_LNMP_v2
 一键初始化CentOS & 安装LNMP环境
 
+## 目录
+LNMP目录: /server/lnmp
+
+nginx:   /server/lnmp/nginx
+
+MariaDB: /server/lnmp/mysql
+
+PHP:     /server/lnmp/php/74
+
+web:     /server/lnmp/nginx/html
+
+log:     /server/wwwlog/
+
+phpMyAdmin: /server/lnmp/phpmyadmin
+
 - centos7init.sh
+
 CentOS初始化脚本
 
 在这个脚本里我用axel替代了wget下载工具，平常我们下载一些国外资源的时候用wget非常缓慢，使用axel可以提升下载效率。
