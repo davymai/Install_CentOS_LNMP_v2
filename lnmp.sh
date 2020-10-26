@@ -542,7 +542,7 @@ MYSQL_PARAMETERS="\
 #memcached编译参数
 MEMCACHED_PARAMETERS="\
 --prefix=$INSTALL_PATH/memcached \
---with-libevent=/usr/local/lib/ \
+--with-libevent=/usr/lib64/ \
 "
 #redis编译参数
 REDIS_PARAMETERS="\
