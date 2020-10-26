@@ -29,6 +29,8 @@ CentOS初始化脚本
 使用方法：
 >sh centos7init.sh
 
+---
+
 ### lnmp.sh
 
 1）系统环境介绍
