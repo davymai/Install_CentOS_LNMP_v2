@@ -220,14 +220,13 @@ function CONFIG_MYSQL() {
     ln -s $INSTALL_PATH/mysql/bin/mysqld_safe /usr/bin/mysqld_safe
     sleep 1
     mkdir -p $INSTALL_PATH/data
-    mkdir -p $INSTALL_PATH/mysql/conf
     sleep 1
     sed -i 's/chown 0 "$pamtooldir/#&/' /$INSTALL_PATH/mysql/scripts/mariadb-install-db
     sed -i 's/chmod 04755 "$pamtooldir/#&/' $INSTALL_PATH/mysql/scripts/mariadb-install-db
     sed -i 's/chown $user "$pamtooldir/#&/' $INSTALL_PATH/mysql/scripts/mariadb-install-db
     sed -i 's/chmod 0700 "$pamtooldir/#&/' $INSTALL_PATH/mysql/scripts/mariadb-install-db
     sleep 1
-    cp -r $CONF_PATH/mariadb/my.cnf $INSTALL_PATH/mysql/conf/my.cnf
+    cp -r $CONF_PATH/mariadb/my.cnf /etc/my.cnf
     chown -R mysql:mysql $INSTALL_PATH/data
     chown -R mysql:mysql $INSTALL_PATH/mysql
     echo ""
@@ -236,14 +235,14 @@ function CONFIG_MYSQL() {
         --user=mysql \
         --basedir=$INSTALL_PATH/mysql \
         --datadir=$INSTALL_PATH/data \
-        --defaults-file=$INSTALL_PATH/mysql/conf
-    cp $INSTALL_PATH/mysql/support-files/mysql.server /etc/init.d/mysql
-    chmod +x /etc/init.d/mysql
+        --defaults-file=/etc
+    cp $INSTALL_PATH/mysql/support-files/mysql.server /etc/init.d/mysqld
+    chmod +x /etc/init.d/mysqld
     sleep 1
     mysql -V
     INFO 35 2 "Mysql configuration is complete......"
-    chkconfig --add mysql
-    systemctl start mysql
+    chkconfig --add mysqld
+    systemctl start mysqld
     if [ $? -eq 0 ]; then
         INFO 33 "2.5" "MariaDB startup success......"
     else
@@ -513,7 +512,7 @@ PHP7_PARAMETERS="\
 MYSQL_PARAMETERS="\
 -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH/mysql \
 -DYSQL_TCP_PORT=3306 \
--DSYSCONFDIR=$INSTALL_PATH/mysql/conf \
+-DSYSCONFDIR=/etc \
 -DMYSQL_DATADIR=$INSTALL_PATH/data \
 -DMYSQL_UNIX_ADDR=/tmp/mysql.sock \
 -DWITH_LOBWRAP=0 \
