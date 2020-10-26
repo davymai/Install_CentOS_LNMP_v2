@@ -16,7 +16,9 @@ log:     /server/wwwlog/
 
 phpMyAdmin: /server/lnmp/phpmyadmin
 
-- centos7init.sh
+---
+
+### centos7init.sh
 
 CentOS初始化脚本
 
@@ -27,7 +29,7 @@ CentOS初始化脚本
 使用方法：
 >sh centos7init.sh
 
-- lnmp.sh
+### lnmp.sh
 
 1）系统环境介绍
 
@@ -54,13 +56,11 @@ Memcached: memcached-1.6.7.tar.gz
 
 >./lnmp.sh (nginx|mysql|php|redis|memcached) install
 
->systemctl (start|stop|restart|status) nginx|mysql|php|redis|memcached
+>systemctl (start|stop|restart|status) nginx|mysqld|php|redis|memcached
 
 ## oh-my-zsh theme
 
-普通用户登录
-![普通用户登录](https://xmyunwei.com/wp-content/uploads/2020/10/WX20201025-183925@2x-1024x551.png)
+![普通用户登录](https://xmyunwei.com/wp-content/uploads/2020/10/WX20201025-183925@2x-1024x551.png "普通用户登录")
 
-root用户登录
-![root用户登录](https://xmyunwei.com/wp-content/uploads/2020/10/WX20201025-185450@2x-1024x551.png)
+![root用户登录](https://xmyunwei.com/wp-content/uploads/2020/10/WX20201025-185450@2x-1024x551.png "root用户登录")
 
