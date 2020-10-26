@@ -173,12 +173,16 @@ function CONFIG_HTTP() {
     INFO 32 3 "Configure the nginx......"
     useradd -M -s /sbin/nologin www
     echo -e "<?php\nphpinfo();\n?>" > $INSTALL_PATH/nginx/html/phpinfo.php
-    chown -R www:www $INSTALL_PATH/nginx/html
+    mkdir -p /server/wwwlogs
+    mkdir -p $INSTALL_PATH/nginx/stop
     mkdir -p $INSTALL_PATH/nginx/tmp/client_body_temp
     mkdir -p $INSTALL_PATH/nginx/conf/vhost
     mkdir -p $INSTALL_PATH/nginx/conf/rewrite
+    chown -R www:www $INSTALL_PATH/nginx/html
+    chown -R www:www /server/wwwlogs
+    cp -rf $CONF_PATH/nginx/stop/*.html $INSTALL_PATH/nginx/stop/
     cp -rf $CONF_PATH/nginx/rewrite/*.conf $INSTALL_PATH/nginx/conf/rewrite/
-    cp -rf $CONF_PATH/nginx//conf/*.conf $INSTALL_PATH/nginx/conf/
+    cp -rf $CONF_PATH/nginx/conf/*.conf $INSTALL_PATH/nginx/conf/
     cp -rf $CONF_PATH/nginx/vhost/*.conf $INSTALL_PATH/nginx/conf/vhost/
     cp -rf $CONF_PATH/nginx/init/nginx_service.sh /etc/init.d/nginx
     chmod +x /etc/init.d/nginx
@@ -221,6 +225,7 @@ function CONFIG_MYSQL() {
     ln -s $INSTALL_PATH/mysql/bin/mysqld_safe /usr/bin/mysqld_safe
     sleep 1
     mkdir -p $INSTALL_PATH/data
+    mkdir -p $INSTALL_PATH/phpmyadmin
     sleep 1
     sed -i 's/chown 0 "$pamtooldir/#&/' /$INSTALL_PATH/mysql/scripts/mariadb-install-db
     sed -i 's/chmod 04755 "$pamtooldir/#&/' $INSTALL_PATH/mysql/scripts/mariadb-install-db
@@ -239,8 +244,12 @@ function CONFIG_MYSQL() {
         --defaults-file=/etc/my.cnf
     cp $INSTALL_PATH/mysql/support-files/mysql.server /etc/init.d/mysqld
     chmod +x /etc/init.d/mysqld
+    mysqld -V
     sleep 2
-    mysql -V
+    tar zxvf $SOURCE_PATH/phpMyAdmin-5.0.4.tar.gz -C $INSTALL_PATH/phpmyadmin/
+    cd $INSTALL_PATH/phpmyadmin/
+    pwd
+    mv phpMyAdmin-5.0.4 phpmyadmin_bbd2dd3db68ba46a
     INFO 35 2 "Mysql configuration is complete......"
     chkconfig --add mysqld
     systemctl start mysqld
@@ -429,7 +438,7 @@ SOURCE_PATH="$(
     pwd
 )/install_tar"
 #源码包列表
-TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz openssl-1.1.1h.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz nettle-3.6.tar.gz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz)
+TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz openssl-1.1.1h.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz nettle-3.6.tar.gz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz phpMyAdmin-5.0.4.tar.gz)
 #Nginx,Mysql,PHP,memcached,Redis yum安装依赖包
 HTTP_YUM="gcc gcc-c++ bzip2"
 MYSQL_YUM="bison-devel zlib-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel openssl-devel libaio-devel"
