@@ -238,7 +238,7 @@ function CONFIG_MYSQL() {
         --defaults-file=/etc
     cp $INSTALL_PATH/mysql/support-files/mysql.server /etc/init.d/mysqld
     chmod +x /etc/init.d/mysqld
-    sleep 1
+    sleep 2
     mysql -V
     INFO 35 2 "Mysql configuration is complete......"
     chkconfig --add mysqld
