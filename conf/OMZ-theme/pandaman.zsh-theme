@@ -14,15 +14,15 @@ W=$fg_no_bold[white]
 RESET=$reset_color
 
 if [ "$UID" = 0 ]; then
-    PROMPTPREFIX="%{$M%}%B-!- %(?:%{$Y%}%Broot:%{$Y%}%Broot)"
-    HOSTNAME="%{$W%}%B@%{$G%}%B%m %{$M%}%B$ipaddr"
+    PROMPTPREFIX="%{$M%}%B-!- %(?:%{$RESET%}%Broot:%{$RESET%}%Broot)"
+    HOSTNAME="%{$G%}%B%m %{$M%}%B%U$ipaddr%u"
     local ret_status="%{$M%}%B»"
-    DATETIME="%{$W%}%B[%{$G%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]%{$M%} WARNING: Now root login !"
+    DATETIME="%{$W%}%B[%{$B%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]%{$M%} WARNING: Now root login !"
 else
-    PROMPTPREFIX="%{$RESET%}%B# %(?:%{$M%}%B${USER}:%{$M%}%B${USER})"
-    HOSTNAME="%{$B%}%B%m %{$M%}%B%U$ipaddr%u"
+    PROMPTPREFIX="%{$RESET%}%B# %(?:%{$G%}%B${USER}:%{$G%}%B${USER})"
+    HOSTNAME="%{$Y%}%B%m %{$M%}%B%U$ipaddr%u"
     local ret_status="%{$Y%}%B»"
-    DATETIME="%{$W%}%B[%{$G%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]"
+    DATETIME="%{$W%}%B[%{$B%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]"
 fi
 
 local return_code="%{$RESET%}[\
@@ -79,7 +79,7 @@ function custom_git_prompt() {
 
 # %B 设置粗体文本
 PROMPT="
-$DATETIME%B$PROMPTPREFIX%{$B%}%B$HOSTNAME %{$R%}%B%~ "
+$DATETIME%B$PROMPTPREFIX%{$W%}%B@$HOSTNAME %{$R%}%B%~ "
 
 PROMPT+='$(custom_git_prompt)%{$W%}%B>
 ${ret_status}%b%{$RESET%}'
