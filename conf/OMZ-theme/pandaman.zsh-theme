@@ -79,7 +79,7 @@ function custom_git_prompt() {
 
 # %B 设置粗体文本
 PROMPT="
-$DATETIME %B$PROMPTPREFIX%{$B%}%B$HOSTNAME %{$R%}%B%~ "
+$DATETIME%B$PROMPTPREFIX%{$B%}%B$HOSTNAME %{$R%}%B%~ "
 
 PROMPT+='$(custom_git_prompt)%{$W%}%B>
 ${ret_status}%b%{$RESET%}'
