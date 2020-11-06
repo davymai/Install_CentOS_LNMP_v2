@@ -1,6 +1,9 @@
 # PandaMan theme for oh-my-zsh
 # Link: https://xmyunwei.com
 
+# IP地址, 使用命令ifconfig获取网口名称并修改"eth0"
+#ipaddr=$(ifconfig eth0 | awk '/inet / {print $2}' | cut -f2 -d ":" | awk 'NR==1 {print $1}')
+
 # 颜色短代码
 R=$fg_no_bold[red]
 G=$fg_no_bold[green]
@@ -11,14 +14,14 @@ W=$fg_no_bold[white]
 RESET=$reset_color
 
 if [ "$UID" = 0 ]; then
-    PROMPTPREFIX="%{$M%}%B-!-"
-    HOSTNAME="%{$W%}%B%m"
-    local ret_status="%(?:%{$Y%}%Broot %{$M%}%B» :%{$Y%}%Broot %{$M%}%B» )"
+    PROMPTPREFIX="%{$M%}%B-!- %(?:%{$Y%}%Broot:%{$Y%}%Broot)"
+    HOSTNAME="%{$W%}%B@%{$G%}%B%m %{$M%}%B$ipaddr"
+    local ret_status="%{$M%}%B»"
     DATETIME="%{$W%}%B[%{$G%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]%{$M%} WARNING: Now root login !"
 else
-    PROMPTPREFIX="#"
-    HOSTNAME="%{$B%}%B%m"
-    local ret_status="%(?:%{$M%}%B${USER} %{$Y%}%B» :%{$M%}%B${USER} %{$Y%}%B» )"
+    PROMPTPREFIX="%{$RESET%}%B# %(?:%{$M%}%B${USER}:%{$M%}%B${USER})"
+    HOSTNAME="%{$B%}%B%m %{$M%}%B%U$ipaddr%u"
+    local ret_status="%{$Y%}%B»"
     DATETIME="%{$W%}%B[%{$G%}%B$(date +%Y-%-m-%-d)%{$W%}%B|%{$RESET%}%B%*%{$W%}%B]"
 fi
 
@@ -26,7 +29,7 @@ local return_code="%{$RESET%}[\
 %{$Y%}%B%?\
 %{$RESET%}]%{$R%}%B↵"
 
-# 获取工作目录的状态
+# 获取Git工作目录的状态
 custom_git_prompt_status() {
     INDEX=$(git status --porcelain 2> /dev/null)
     STATUS=""
@@ -68,7 +71,7 @@ custom_git_prompt_status() {
     echo $STATUS
 }
 
-# 获取我们所在的分支机构的名称
+# 获取所在的分支名称
 function custom_git_prompt() {
     ref=$(git symbolic-ref HEAD 2> /dev/null) || return
     echo "$(git_prompt_ahead)$ZSH_THEME_GIT_PROMPT_PREFIX$(custom_git_prompt_status) ${ref#refs/heads/}$ZSH_THEME_GIT_PROMPT_SUFFIX$(parse_git_dirty)"
@@ -76,9 +79,9 @@ function custom_git_prompt() {
 
 # %B 设置粗体文本
 PROMPT="
-%B$PROMPTPREFIX %{$B%}%B$HOSTNAME %{$R%}%B%~ "
+$DATETIME %B$PROMPTPREFIX%{$B%}%B$HOSTNAME %{$R%}%B%~ "
 
-PROMPT+='$(custom_git_prompt)$DATETIME
+PROMPT+='$(custom_git_prompt)%{$W%}%B>
 ${ret_status}%b%{$RESET%}'
 
 #在行末显示上一命令的返回状态
