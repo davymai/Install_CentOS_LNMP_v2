@@ -57,7 +57,7 @@ fi
 sleep 6
 
 lnmp_dir=$(dirname "$(readlink -f $0)")
-pushd ${lnmp_dir} > /dev/null
+pushd ${lnmp_dir} >/dev/null
 
 # start Time
 startTime=$(date +%s)
@@ -68,10 +68,10 @@ user_create() {
     read -p "输入密码：" -s -r passwd
     read -p "输入您的公钥：" rsa
     read -p "输入ssh端口号：" sshp
-    useradd -G wheel $name && echo $Password | passwd --stdin $name &> /dev/null
+    useradd -G wheel $name && echo $Password | passwd --stdin $name &>/dev/null
     cd /home/$name && mkdir .ssh && chown $name:$name .ssh && chmod 700 .ssh && cd .ssh
-    echo "$rsa" >> authorized_keys && chown $name:$name authorized_keys && chmod 600 authorized_keys
-    echo "$name ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    echo "$rsa" >>authorized_keys && chown $name:$name authorized_keys && chmod 600 authorized_keys
+    echo "$name ALL=(ALL) NOPASSWD: ALL" >>/etc/sudoers
     history -cw
     sleep 3
     echo ""
@@ -101,7 +101,7 @@ config_nameserver() {
         INFO 31 2 "nameserver is exist."
     else
         INFO 32 2 "add nameserver in /etc/resolv.conf"
-        echo "nameserver 114.114.114.114" >> /etc/resolv.conf
+        echo "nameserver 114.114.114.114" >>/etc/resolv.conf
         INFO 36 2 "nameserver config complete."
     fi
 }
@@ -129,10 +129,10 @@ system_update() {
     [ -e "/usr/local/include/openssl" ] && rm -rf /usr/local/include/openssl
     curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
     yum -y upgrade
-    command -v lsb_release > /dev/null 2>&1 || {
+    command -v lsb_release >/dev/null 2>&1 || {
         [ -e "/etc/euleros-release" ] && yum -y install euleros-lsb || yum -y install redhat-lsb-core
     }
-    command -v gcc > /dev/null 2>&1 || yum -y install gcc
+    command -v gcc >/dev/null 2>&1 || yum -y install gcc
     # install openssh-server openssh-clients
     yum -y install openssh-server openssh-clients
     yum clean all
@@ -149,14 +149,14 @@ Install_openSSL() {
     if [ -e "${ENV_PATH}/openssl/lib/libssl.a" ]; then
         INFO 31 1 "OpenSSL is already installed!"
     else
-        pushd ${SOURCE_PATH} > /dev/null
+        pushd ${SOURCE_PATH} >/dev/null
         tar zxvf ${SOURCE_PATH}/openssl-1.1.1h.tar.gz
-        pushd openssl-1.1.1h > /dev/null
+        pushd openssl-1.1.1h >/dev/null
         make clean
         ./config -Wl,-rpath=${ENV_PATH}/openssl/lib -fPIC --prefix=${ENV_PATH}/openssl --openssldir=${ENV_PATH}/openssl
         make depend
         make -j ${THREAD} && make install
-        popd > /dev/null
+        popd >/dev/null
         if [ -f "${ENV_PATH}/openssl/lib/libcrypto.a" ]; then
             INFO 33 2 "OpenSSL installed successfully!......"
             rm -rf openssl-1.1.1h
@@ -164,7 +164,7 @@ Install_openSSL() {
             INFO 31 2 "OpenSSL install failed, Please contact the author!" && lsb_release -a
             kill -9 $$
         fi
-        popd > /dev/null
+        popd >/dev/null
     fi
 }
 # axel
@@ -174,14 +174,14 @@ Install_axel() {
         INFO 31 1 "axel is already installed."
     else
         yum -y install openssl-devel
-        pushd ${SOURCE_PATH} > /dev/null
+        pushd ${SOURCE_PATH} >/dev/null
         tar zxvf ${SOURCE_PATH}/axel-2.17.9.tar.gz
-        pushd axel-2.17.9 > /dev/null
+        pushd axel-2.17.9 >/dev/null
         ./configure --bindir=/usr/bin --sbindir=/usr/sbin
         make depend
         make -j ${THREAD} && make install
-        popd > /dev/null
-        grep 'alias axel="axel -a"' /etc/bashrc > /dev/null
+        popd >/dev/null
+        grep 'alias axel="axel -a"' /etc/bashrc >/dev/null
         if [ $? -ne 0 ]; then
             sed -i '$ a\alias axel="axel -a"' /etc/bashrc
         fi
@@ -192,7 +192,7 @@ Install_axel() {
             INFO 31 1 "axel install failed, Please contact the author!" && lsb_release -a
             kill -9 $$
         fi
-        popd > /dev/null
+        popd >/dev/null
     fi
 }
 
@@ -215,7 +215,7 @@ ulimit_config() {
     else
         sed -i '$ a\ulimit -SHn 655360' /etc/rc.local
     fi
-    cat > /etc/security/limits.conf << EOF
+    cat >/etc/security/limits.conf <<EOF
 * soft nproc 102400
 * hard nproc 102400
 * soft nofile 102400
@@ -229,7 +229,7 @@ EOF
 bashrc_config() {
     INFO 35 2 "Starting bashrc config..."
     cp -f /etc/bashrc /etc/bashrc-bake
-    echo "export PS1='\[\e[37;1m\][\[\e[35;49;1m\]\u\[\e[32;1m\]@\[\e[34;1m\]\h \[\e[37;1m\]➜ \[\e[31;1m\]\w \[\e[33;1m\]\t\[\e[37;1m\]]\[\e[32;1m\]$\[\e[m\] '" >> /etc/bashrc
+    echo "export PS1='\[\e[37;1m\][\[\e[35;49;1m\]\u\[\e[32;1m\]@\[\e[34;1m\]\h \[\e[37;1m\]➜ \[\e[31;1m\]\w \[\e[33;1m\]\t\[\e[37;1m\]]\[\e[32;1m\]$\[\e[m\] '" >>/etc/bashrc
     sed -i '$ a\alias axel="axel -a"\nset -o vi\nalias vi="vim"\nalias ll="ls -ahlF --color=auto --time-style=long-iso"\nalias ls="ls --color=auto --time-style=long-iso"\nalias grep="grep --color=auto"\nalias fgrep="fgrep --color=auto"\nalias egrep="egrep --color=auto"' /etc/bashrc
     INFO 36 2 "bashrc set OK!! 系统变量设在完成！！"
 }
@@ -250,7 +250,7 @@ Install_zsh() {
         git clone https://gitee.com/mirrors/oh-my-zsh.git ~/.oh-my-zsh &&
             cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc &&
             usermod -s /bin/zsh $(whoami) &&
-            cp ${CONF_PATH}/OMZ-theme/pandaman.zsh-theme ~/.oh-my-zsh/themes/pandaman.zsh-theme &&
+            cp ${CONF_PATH}/OMZ-theme/panda.zsh-theme ~/.oh-my-zsh/themes/panda.zsh-theme &&
             cd ~/.oh-my-zsh/custom
         pwd
         git clone https://gitee.com/pankla/zsh-syntax-highlighting.git ./plugins/zsh-syntax-highlighting
@@ -283,7 +283,7 @@ sshd_config() {
 # firewalld config
 disable_firewalld() {
     INFO 35 2 "Starting disable firewalld..."
-    rpm -qa | grep firewalld >> /dev/null
+    rpm -qa | grep firewalld >>/dev/null
     if [ $? -eq 0 ]; then
         systemctl stop firewalld && systemctl disable firewalld
         [ $? -eq 0 ] && INFO 36 2 "Disable firewalld complete."
@@ -295,7 +295,7 @@ disable_firewalld() {
 # vim config
 vim_config() {
     INFO 35 2 "Starting vim config..."
-    /usr/bin/egrep pastetoggle /etc/vimrc >> /dev/null
+    /usr/bin/egrep pastetoggle /etc/vimrc >>/dev/null
     if [ $? -eq 0 ]; then
         INFO 35 2 "vim already config"
     else
@@ -308,8 +308,8 @@ vim_config() {
 config_sysctl() {
     INFO 35 2 "Staring config sysctl..."
     cp -f /etc/sysctl.conf /etc/sysctl.conf.bak
-    cat /dev/null > /etc/sysctl.conf
-    cat > /etc/sysctl.conf << EOF
+    cat /dev/null >/etc/sysctl.conf
+    cat >/etc/sysctl.conf <<EOF
 fs.file-max = 655350
 vm.swappiness = 0
 vm.dirty_ratio = 20
@@ -411,5 +411,5 @@ printf "
 "
 
 INFO 32 1 "Initialization is complete, please \e[31;1mreboot \e[32;1mthe system!!\n 系统初始化完成，请确认无误之后执行 \e[31;1mreboot \e[32;1m重启系统！\n================================\nssh端口号：\e[33;1m$sshp\n\e[32;1m服务器IP：\e[33;1m$ipadd\n\e[32;1m用户名：\e[33;1m$name\n\e[32;1m密码：\e[33;1m$passwd\n\e[32;1m请牢记您的密码!!!\n================================\n远程访问：\e[33;1mssh -p $sshp $name@$ipadd"
-cat /dev/null > ~/.bash_history
-cat /dev/null > ~/.zsh_history
+cat /dev/null >~/.bash_history
+cat /dev/null >~/.zsh_history
