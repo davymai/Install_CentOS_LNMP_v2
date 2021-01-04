@@ -66,7 +66,6 @@ function INSTALL() {
     if [ $1 = jemalloc ]; then
         ./configure $5 || exit 1
     elif [ $1 = openssl ]; then
-        yum remove -y openssl openssl-devel
         ./config $5 || exit 1
     elif [ $1 = zlib ]; then
         ./configure $5 || exit 1

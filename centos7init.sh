@@ -163,11 +163,7 @@ Install_axel() {
         ./configure --bindir=/usr/bin --sbindir=/usr/sbin
         make depend
         make -j ${THREAD} && make install
-        grep 'alias axel="axel -a"' /etc/bashrc > /dev/null
-        if [ $? -ne 0 ]; then
-            sed -i '$ a\alias axel="axel -a"' /etc/bashrc
-            sed -i '$ a\alias wget="axel"' /etc/bashrc
-        fi
+        sed -i '$ a\alias wget="axel"' /etc/bashrc
         if [ -f "/usr/bin/axel" ]; then
             INFO 33 1 "axel installed successfully!......"
             rm -rf ${SOURCE_PATH}/axel-2.17.9
@@ -245,11 +241,16 @@ Install_zsh() {
     fi
     INFO 35 2 "Starting install oh-my-zsh..."
     if [ ! -d /etc/oh-my-zsh ]; then
+        yum install -y autojump
         git clone https://gitee.com/mirrors/oh-my-zsh.git /etc/oh-my-zsh &&
         cp -f /etc/zshrc /etc/zshrc-bak
         cp /etc/oh-my-zsh/templates/zshrc.zsh-template /etc/skel/.zshrc &&
-        pushd $ZSH_CUSTOM/plugins >/dev/null&&
-        cp ${CONF_PATH}/OMZ-theme/pandaman.zsh-theme $ZSH_CUSTOM/themes/pandaman.zsh-theme &&
+        cp $CONF_PATH/OMZ-theme/.p10k.zsh /etc/skel/.p10k.zsh &&
+        pushd $ZSH_CUSTOM/themes > /dev/null &&
+        cp ${SOURCE_PATH}/powerlevel10k.tar.gz $ZSH_CUSTOM/themes/ &&
+        tar zxvf $ZSH_CUSTOM/themes/powerlevel10k.tar.gz &&
+        rm -rf $ZSH_CUSTOM/themes/powerlevel10k.tar.gz &&
+        pushd $ZSH_CUSTOM/plugins > /dev/null &&
         git clone https://gitee.com/pankla/zsh-syntax-highlighting.git $ZSH_CUSTOM/plugins/zsh-syntax-highlighting &&
         git clone https://gitee.com/pankla/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions &&
         INFO 36 2 "oh-my-zsh installation is successful..."
@@ -257,9 +258,9 @@ Install_zsh() {
         sed -ie 's|$HOME/.oh-my-zsh|/etc/oh-my-zsh|g' /etc/skel/.zshrc &&
         mkdir -p /etc/skel/.oh-my-zsh/cache &&
         echo "export ZSH_CACHE_DIR=~/.oh-my-zsh/cache" >> /etc/skel/.zshrc &&
-        sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' /etc/skel/.zshrc
+        sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' /etc/skel/.zshrc
         sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" /etc/skel/.zshrc
-        sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract sublime autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh\n\nsource /etc/profile' /etc/skel/.zshrc
+        sed -i '$ a\alias wget="axel"\nalias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n\n#oh-my-zsh插件\nplugins=(git z extract sublime autojump zsh-syntax-highlighting zsh-autosuggestions)\n\n#autojump\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh\n\nsource /etc/profile\n\n# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.\n[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh' /etc/skel/.zshrc
         INFO 36 2 "oh-my-zsh configuration is successful..."
     else
         INFO 31 1 "oh-my-zsh already installed..."
@@ -271,11 +272,13 @@ sshd_config() {
     INFO 35 2 "Starting config sshd..."
     sed -i '/^#Port/s/#Port 22/Port '$sshp'/g' /etc/ssh/sshd_config
     sed -i '/^#UseDNS/s/#UseDNS yes/UseDNS no/g' /etc/ssh/sshd_config
+    sed -i '/^PasswordAuthentication yes/s/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+    sed -i '/^#PubkeyAuthentication/s/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
     sed -i "s/UsePAM.*/UsePAM yes/g" /etc/ssh/sshd_config
     sed -i '/^GSSAPIAuthentication/s/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' /etc/ssh/sshd_config
     sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords no/g' /etc/ssh/sshd_config
     #if you do not want to allow root login,please open below
-    #sed -i 's/#PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+    sed -i 's/#PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
     systemctl restart sshd
     [ $? -eq 0 ] && INFO 36 2 "SSH port $sshp config complete."
 }
@@ -375,7 +378,7 @@ user_create() {
     INFO 35 2 "Create User\n 创建用户"
     read -p "输入用户名：" name
     read -p "输入密码：" -s -r passwd
-    read -p "输入您的公钥：" rsa
+    read -p "输入您的公钥(*重启后仅允许密钥登陆，禁止root用户登陆)：" rsa
     read -p "输入ssh端口号：" sshp
     useradd -G wheel $name && echo $Password | passwd --stdin $name &> /dev/null
     cd /home/$name && mkdir .ssh && chown $name:$name .ssh && chmod 700 .ssh && cd .ssh
