@@ -124,7 +124,6 @@ Install_openSSL() {
         INFO 31 1 "OpenSSL is already installed!"
     else
         # del openssl
-        yum remove -y openssl &&
         [ -e "/usr/bin/openssl" ] && rm -rf /usr/bin/openssl
         [ -e "/usr/local/bin/openssl" ] && rm -rf /usr/local/bin/openssl
         [ -e "/usr/local/include/openssl" ] && rm -rf /usr/local/include/openssl
@@ -248,19 +247,19 @@ Install_zsh() {
     if [ ! -d /etc/oh-my-zsh ]; then
         git clone https://gitee.com/mirrors/oh-my-zsh.git /etc/oh-my-zsh &&
         cp -f /etc/zshrc /etc/zshrc-bak
-        cp /etc/oh-my-zsh/templates/zshrc.zsh-template /etc/zprofile &&
+        cp /etc/oh-my-zsh/templates/zshrc.zsh-template /etc/skel/.zshrc &&
         pushd $ZSH_CUSTOM/plugins >/dev/null&&
         cp ${CONF_PATH}/OMZ-theme/pandaman.zsh-theme $ZSH_CUSTOM/themes/pandaman.zsh-theme &&
         git clone https://gitee.com/pankla/zsh-syntax-highlighting.git $ZSH_CUSTOM/plugins/zsh-syntax-highlighting &&
         git clone https://gitee.com/pankla/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions &&
         INFO 36 2 "oh-my-zsh installation is successful..."
         INFO 32 2 "Starting config oh-my-zsh..."
-        sed -ie 's|$HOME/.oh-my-zsh|/etc/oh-my-zsh|g' /etc/zprofile &&
+        sed -ie 's|$HOME/.oh-my-zsh|/etc/oh-my-zsh|g' /etc/skel/.zshrc &&
         mkdir -p /etc/skel/.oh-my-zsh/cache &&
-        echo "export ZSH_CACHE_DIR=~/.oh-my-zsh/cache" >> /etc/zprofile &&
-        sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' /etc/zprofile
-        sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" /etc/zprofile
-        sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract sublime autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh\n\nsource /etc/profile' /etc/zprofile
+        echo "export ZSH_CACHE_DIR=~/.oh-my-zsh/cache" >> /etc/skel/.zshrc &&
+        sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' /etc/skel/.zshrc
+        sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" /etc/skel/.zshrc
+        sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract sublime autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh\n\nsource /etc/profile' /etc/skel/.zshrc
         INFO 36 2 "oh-my-zsh configuration is successful..."
     else
         INFO 31 1 "oh-my-zsh already installed..."
