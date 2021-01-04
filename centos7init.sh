@@ -22,16 +22,14 @@ function INFO() {
     sleep "$2"
     echo ""
 }
-ipadd=$(ifconfig eth0 | awk '/inet/ {print $2}' | cut -f2 -d ":" | awk 'NR==1 {print $1}')
 #安装目录
-ENV_PATH="/usr/local/env"
+ENV_PATH="/usr/local"
 #源码包存放目录
-SOURCE_PATH="$(
-    cd $(dirname $0)
-    pwd
-)/install_tar"
+SOURCE_PATH="$(cd $(dirname -- $0)
+pwd)/install_tar"
 #LNMP配置文件的目录
-CONF_PATH="/data/lnmp/conf"
+CONF_PATH="$(cd $(dirname -- $0)
+pwd)/conf"
 #逻辑CPU个数
 THREAD=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
 
@@ -54,34 +52,14 @@ if [ $(id -u) != "0" ]; then
     INFO 31 1 "Error: You must be root to run this script, please use root to initialization OS.\n 错误：您必须是 root 用户才能运行此脚本，请使用 root 用户身份来初始化操作系统。"
     exit 1
 fi
-sleep 6
-
-lnmp_dir=$(dirname "$(readlink -f $0)")
-pushd ${lnmp_dir} >/dev/null
+sleep 5
 
 # start Time
 startTime=$(date +%s)
-#Create Ops user
-user_create() {
-    INFO 32 1 "Create User\n 创建用户"
-    read -p "输入用户名：" name
-    read -p "输入密码：" -s -r passwd
-    read -p "输入您的公钥：" rsa
-    read -p "输入ssh端口号：" sshp
-    useradd -G wheel $name && echo $Password | passwd --stdin $name &>/dev/null
-    cd /home/$name && mkdir .ssh && chown $name:$name .ssh && chmod 700 .ssh && cd .ssh
-    echo "$rsa" >>authorized_keys && chown $name:$name authorized_keys && chmod 600 authorized_keys
-    echo "$name ALL=(ALL) NOPASSWD: ALL" >>/etc/sudoers
-    history -cw
-    sleep 3
-    echo ""
-    echo "Ops user: $name is created."
-    echo ""
-}
 
 # delete useless user and group
 user_del() {
-    INFO 32 1 "Delete useless user\n 删除无用的用户和组"
+    INFO 35 2 "Delete useless user\n 删除无用的用户和组"
     userdel -r adm
     userdel -r lp
     userdel -r games
@@ -92,6 +70,7 @@ user_del() {
     groupdel video
     groupdel ftp
     echo ""
+    INFO 36 2 "Delete useless user is successful..."
 }
 
 # update system & install pakeage
@@ -101,7 +80,7 @@ config_nameserver() {
         INFO 31 2 "nameserver is exist."
     else
         INFO 32 2 "add nameserver in /etc/resolv.conf"
-        echo "nameserver 114.114.114.114" >>/etc/resolv.conf
+        echo "nameserver 223.5.5.5" >> /etc/resolv.conf
         INFO 36 2 "nameserver config complete."
     fi
 }
@@ -125,20 +104,19 @@ timezone_config() {
 system_update() {
     INFO 35 2 "*** Starting update system && install tools pakeage... ***\n        *** 正在启动更新系统 && 安装工具包... ***"
     # del openssl
+    yum remove -y openssl
     [ -e "/usr/local/bin/openssl" ] && rm -rf /usr/local/bin/openssl
     [ -e "/usr/local/include/openssl" ] && rm -rf /usr/local/include/openssl
     curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
     yum -y upgrade
-    command -v lsb_release >/dev/null 2>&1 || {
+    command -v lsb_release > /dev/null 2>&1 || {
         [ -e "/etc/euleros-release" ] && yum -y install euleros-lsb || yum -y install redhat-lsb-core
     }
-    command -v gcc >/dev/null 2>&1 || yum -y install gcc
+    command -v gcc > /dev/null 2>&1 || yum -y install gcc
     # install openssh-server openssh-clients
     yum -y install openssh-server openssh-clients
-    yum clean all
-    # install wget vim authconfig libselinux-utils initscripts
-    yum install -y wget vim authconfig libselinux-utils initscripts
-    yum clean all
+    # install vim authconfig libselinux-utils initscripts net-tools
+    yum install -y vim authconfig libselinux-utils initscripts net-tools
     rm -rf /var/cache/yum/*
     [ $? -eq 0 ] && INFO 36 2 "System upgrade && install pakeages complete.\n 系统升级和程序安装完成。"
 }
@@ -149,50 +127,55 @@ Install_openSSL() {
     if [ -e "${ENV_PATH}/openssl/lib/libssl.a" ]; then
         INFO 31 1 "OpenSSL is already installed!"
     else
-        pushd ${SOURCE_PATH} >/dev/null
-        tar zxvf ${SOURCE_PATH}/openssl-1.1.1h.tar.gz
-        pushd openssl-1.1.1h >/dev/null
-        make clean
-        ./config -Wl,-rpath=${ENV_PATH}/openssl/lib -fPIC --prefix=${ENV_PATH}/openssl --openssldir=${ENV_PATH}/openssl
+        pushd ${SOURCE_PATH} > /dev/null
+        tar -zxvf ${SOURCE_PATH}/openssl-1.1.1i.tar.gz
+        pushd openssl-1.1.1i > /dev/null
+        make clean > /dev/null
+        ./config -Wl,-fPIC --prefix=${ENV_PATH}/openssl
         make depend
         make -j ${THREAD} && make install
-        popd >/dev/null
+        ln -s ${ENV_PATH}/openssl/bin/openssl /usr/bin/openssl
+        ln -s ${ENV_PATH}/openssl/include/openssl /usr/include/openssl
+        ln -s ${ENV_PATH}/openssl/lib/libssl.so.1.1 /usr/lib64/libssl.so.1.1
+        ln -s ${ENV_PATH}/openssl/lib/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
         if [ -f "${ENV_PATH}/openssl/lib/libcrypto.a" ]; then
             INFO 33 2 "OpenSSL installed successfully!......"
-            rm -rf openssl-1.1.1h
+            rm -rf ${SOURCE_PATH}/openssl-1.1.1i
         else
             INFO 31 2 "OpenSSL install failed, Please contact the author!" && lsb_release -a
             kill -9 $$
         fi
-        popd >/dev/null
+        popd > /dev/null
     fi
 }
-# axel
+
+# axel 替代wget
 Install_axel() {
     INFO 32 2 "Install axel"
     if [ -e "/usr/bin/axel" ]; then
         INFO 31 1 "axel is already installed."
     else
         yum -y install openssl-devel
-        pushd ${SOURCE_PATH} >/dev/null
-        tar zxvf ${SOURCE_PATH}/axel-2.17.9.tar.gz
-        pushd axel-2.17.9 >/dev/null
+        pushd ${SOURCE_PATH} > /dev/null
+        tar -zxvf ${SOURCE_PATH}/axel-2.17.10.tar.gz
+        pushd axel-2.17.10 > /dev/null
+        make clean > /dev/null
         ./configure --bindir=/usr/bin --sbindir=/usr/sbin
         make depend
         make -j ${THREAD} && make install
-        popd >/dev/null
-        grep 'alias axel="axel -a"' /etc/bashrc >/dev/null
+        grep 'alias axel="axel -a"' /etc/bashrc > /dev/null
         if [ $? -ne 0 ]; then
             sed -i '$ a\alias axel="axel -a"' /etc/bashrc
+            sed -i '$ a\alias wget="axel"' /etc/bashrc
         fi
         if [ -f "/usr/bin/axel" ]; then
             INFO 33 1 "axel installed successfully!......"
-            rm -rf axel-2.17.9
+            rm -rf ${SOURCE_PATH}/axel-2.17.9
         else
             INFO 31 1 "axel install failed, Please contact the author!" && lsb_release -a
             kill -9 $$
         fi
-        popd >/dev/null
+        popd > /dev/null
     fi
 }
 
@@ -215,7 +198,7 @@ ulimit_config() {
     else
         sed -i '$ a\ulimit -SHn 655360' /etc/rc.local
     fi
-    cat >/etc/security/limits.conf <<EOF
+    cat > /etc/security/limits.conf << EOF
 * soft nproc 102400
 * hard nproc 102400
 * soft nofile 102400
@@ -228,38 +211,55 @@ EOF
 #set bashrc
 bashrc_config() {
     INFO 35 2 "Starting bashrc config..."
-    cp -f /etc/bashrc /etc/bashrc-bake
-    echo "export PS1='\[\e[37;1m\][\[\e[35;49;1m\]\u\[\e[32;1m\]@\[\e[34;1m\]\h \[\e[37;1m\]➜ \[\e[31;1m\]\w \[\e[33;1m\]\t\[\e[37;1m\]]\[\e[32;1m\]$\[\e[m\] '" >>/etc/bashrc
-    sed -i '$ a\alias axel="axel -a"\nset -o vi\nalias vi="vim"\nalias ll="ls -ahlF --color=auto --time-style=long-iso"\nalias ls="ls --color=auto --time-style=long-iso"\nalias grep="grep --color=auto"\nalias fgrep="fgrep --color=auto"\nalias egrep="egrep --color=auto"' /etc/bashrc
+    cp -f /etc/bashrc /etc/bashrc-bak
+    echo "export PS1='\[\e[37;1m\][\[\e[35;49;1m\]\u\[\e[32;1m\]@\[\e[34;1m\]\h \[\e[37;1m\]➜ \[\e[31;1m\]\w \[\e[33;1m\]\t\[\e[37;1m\]]\[\e[32;1m\]$\[\e[m\] '" >> /etc/bashrc
+    sed -i '$ a\set -o vi\nalias vi="vim"\nalias ll="ls -ahlF --color=auto --time-style=long-iso"\nalias ls="ls --color=auto --time-style=long-iso"\nalias grep="grep --color=auto"\nalias fgrep="fgrep --color=auto"\nalias egrep="egrep --color=auto"' /etc/bashrc
     INFO 36 2 "bashrc set OK!! 系统变量设在完成！！"
 }
 
-# install zsh - oh-my-zsh
+# install zsh & oh-my-zsh
 Install_zsh() {
+    ZSH_CUSTOM="/etc/oh-my-zsh/custom"
     INFO 35 2 "Starting install zsh..."
-    #LNMP配置文件的目录
-    CONF_PATH="/data/lnmp/conf"
     if [ $(rpm -qa | grep zsh | wc -l) -ne 0 ]; then
         INFO 31 1 "zsh already installed..."
     else
-        yum install -y git zsh autojump-zsh &&
-            INFO 36 2 "zsh installation is successful..."
+        yum -y install gcc perl-ExtUtils-MakeMaker ncurses-devel &&
+        pushd ${SOURCE_PATH} > /dev/null
+        tar zxvf ${SOURCE_PATH}/zsh-5.8.tar.gz
+        pushd zsh-5.8 > /dev/null
+        make clean > /dev/null
+        ./configure --exec-prefix=/usr
+        make depend
+        make -j ${THREAD} && make install
+        if [ -f "/bin/zsh" ]; then
+            echo "/bin/zsh" >> /etc/shells &&
+            rm -rf ${SOURCE_PATH}/zsh-5.8 &&
+            usermod -s /bin/zsh $(whoami) &&
+            INFO 33 1 "zsh installed successfully!......"
+        else
+            INFO 31 1 "zsh install failed, Please contact the author!" && lsb_release -a
+            kill -9 $$
+        fi
+        popd >/dev/null
     fi
     INFO 35 2 "Starting install oh-my-zsh..."
-    if [ ! -d ~/.oh-my-zsh ]; then
-        git clone https://gitee.com/mirrors/oh-my-zsh.git ~/.oh-my-zsh &&
-            cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc &&
-            usermod -s /bin/zsh $(whoami) &&
-            cp ${CONF_PATH}/OMZ-theme/panda.zsh-theme ~/.oh-my-zsh/themes/panda.zsh-theme &&
-            cd ~/.oh-my-zsh/custom
-        pwd
-        git clone https://gitee.com/pankla/zsh-syntax-highlighting.git ./plugins/zsh-syntax-highlighting
-        git clone https://gitee.com/pankla/zsh-autosuggestions.git ./plugins/zsh-autosuggestions &&
-            INFO 36 2 "oh-my-zsh installation is successful..."
+    if [ ! -d /etc/oh-my-zsh ]; then
+        git clone https://gitee.com/mirrors/oh-my-zsh.git /etc/oh-my-zsh &&
+        cp -f /etc/zshrc /etc/zshrc-bak
+        cp /etc/oh-my-zsh/templates/zshrc.zsh-template /etc/zprofile &&
+        pushd $ZSH_CUSTOM/plugins >/dev/null&&
+        cp ${CONF_PATH}/OMZ-theme/pandaman.zsh-theme $ZSH_CUSTOM/themes/pandaman.zsh-theme &&
+        git clone https://gitee.com/pankla/zsh-syntax-highlighting.git $ZSH_CUSTOM/plugins/zsh-syntax-highlighting &&
+        git clone https://gitee.com/pankla/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions &&
+        INFO 36 2 "oh-my-zsh installation is successful..."
         INFO 32 2 "Starting config oh-my-zsh..."
-        sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' ~/.zshrc
-        sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" ~/.zshrc
-        sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh\n\nsource /etc/profile' ~/.zshrc
+        sed -ie 's|$HOME/.oh-my-zsh|/etc/oh-my-zsh|g' /etc/zprofile &&
+        mkdir -p /etc/skel/.oh-my-zsh/cache &&
+        echo "export ZSH_CACHE_DIR=~/.oh-my-zsh/cache" >> /etc/zprofile &&
+        sed -i '/^ZSH_THEME/s/ZSH_THEME="robbyrussell"/ZSH_THEME="pandaman"/g' /etc/zprofile
+        sed -i "/^plugins/s/plugins=(git)/#plugins=(git)/g" /etc/zprofile
+        sed -i '$ a#alias ll="ls -halF"\nalias la="ls -AF"\nalias ls="ls -CF"\nalias l="ls -CF"\nalias grep="grep --color=auto"\n#启用命令纠错功能\n# Uncomment the following line to enable command auto-correction.\nENABLE_CORRECTION="true"\n#enables colorin the terminal bash shell export\nexport CLICOLOR=1\n#setsup thecolor scheme for list export\nexport LSCOLORS=ExfxcxdxBxegedabagacad\n#开启颜色\nautoload -U colors && colors\n#zsh-syntax-highlighting\nexport ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/highlighters\nsource $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n#zsh-autosuggestions\nsource $ZSH_CUSTOM/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n#oh-my-zsh插件\nplugins=(git z extract sublime autojump zsh-syntax-highlighting zsh-autosuggestions)\n[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh\n\nsource /etc/profile' /etc/zprofile
         INFO 36 2 "oh-my-zsh configuration is successful..."
     else
         INFO 31 1 "oh-my-zsh already installed..."
@@ -281,12 +281,15 @@ sshd_config() {
 }
 
 # firewalld config
-disable_firewalld() {
-    INFO 35 2 "Starting disable firewalld..."
-    rpm -qa | grep firewalld >>/dev/null
+config_firewalld() {
+    INFO 35 2 "Starting config firewalld..."
+    rpm -qa | grep firewalld >> /dev/null
     if [ $? -eq 0 ]; then
-        systemctl stop firewalld && systemctl disable firewalld
-        [ $? -eq 0 ] && INFO 36 2 "Disable firewalld complete."
+        #systemctl stop firewalld && systemctl disable firewalld
+        firewall-cmd --permanent --add-port=$sshp/tcp
+        firewall-cmd --rel
+        firewall-cmd --list-all
+        [ $? -eq 0 ] && INFO 36 2 "Config firewalld complete."
     else
         INFO 35 2 "Firewalld not install."
     fi
@@ -295,7 +298,7 @@ disable_firewalld() {
 # vim config
 vim_config() {
     INFO 35 2 "Starting vim config..."
-    /usr/bin/egrep pastetoggle /etc/vimrc >>/dev/null
+    /usr/bin/egrep pastetoggle /etc/vimrc >> /dev/null
     if [ $? -eq 0 ]; then
         INFO 35 2 "vim already config"
     else
@@ -308,8 +311,8 @@ vim_config() {
 config_sysctl() {
     INFO 35 2 "Staring config sysctl..."
     cp -f /etc/sysctl.conf /etc/sysctl.conf.bak
-    cat /dev/null >/etc/sysctl.conf
-    cat >/etc/sysctl.conf <<EOF
+    cat /dev/null > /etc/sysctl.conf
+    cat > /etc/sysctl.conf << EOF
 fs.file-max = 655350
 vm.swappiness = 0
 vm.dirty_ratio = 20
@@ -330,7 +333,6 @@ net.ipv4.tcp_keepalive_time = 600
 # 开启反向路径过滤
 net.ipv4.conf.all.rp_filter = 1
 EOF
-    /usr/sbin/sysctl -p
     INFO 36 2 "sysctl config complete."
 }
 
@@ -368,16 +370,35 @@ disable_serivces() {
     INFO 36 2 "Disable postfix service complete."
 }
 
+#Create OPS user
+user_create() {
+    INFO 35 2 "Create User\n 创建用户"
+    read -p "输入用户名：" name
+    read -p "输入密码：" -s -r passwd
+    read -p "输入您的公钥：" rsa
+    read -p "输入ssh端口号：" sshp
+    useradd -G wheel $name && echo $Password | passwd --stdin $name &> /dev/null
+    cd /home/$name && mkdir .ssh && chown $name:$name .ssh && chmod 700 .ssh && cd .ssh
+    echo "$rsa" >> authorized_keys && chown $name:$name authorized_keys && chmod 600 authorized_keys
+    usermod -s /bin/zsh $name
+    echo "$name ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    history -cw
+    sleep 3
+    echo ""
+    INFO 36 2 "OPS-User: \e[33;1m$name \e[36;1mcreate is successful..."
+    echo ""
+}
+
 other() {
     # Record command
     # lock user when enter wrong password root 10s others 180s
     sed -i '1aauth       required     pam_tally2.so deny=3 unlock_time=180 even_deny_root root_unlock_time=10' /etc/pam.d/sshd
+    yum clean all
     sleep 3
 }
 
 #main function
 main() {
-    user_create
     user_del
     config_nameserver
     timezone_config
@@ -387,14 +408,15 @@ main() {
     selinux_config
     ulimit_config
     bashrc_config
-    sshd_config
-    disable_firewalld
+    Install_zsh
     vim_config
     config_sysctl
     disable_ipv6
     password_config
     disable_serivces
-    Install_zsh
+    user_create
+    sshd_config
+    config_firewalld
     other
 }
 # execute main functions
@@ -409,7 +431,7 @@ printf "
  |                        系统初始化全部完成 ！                           |
  +------------------------------------------------------------------------+
 "
-
-INFO 32 1 "Initialization is complete, please \e[31;1mreboot \e[32;1mthe system!!\n 系统初始化完成，请确认无误之后执行 \e[31;1mreboot \e[32;1m重启系统！\n================================\nssh端口号：\e[33;1m$sshp\n\e[32;1m服务器IP：\e[33;1m$ipadd\n\e[32;1m用户名：\e[33;1m$name\n\e[32;1m密码：\e[33;1m$passwd\n\e[32;1m请牢记您的密码!!!\n================================\n远程访问：\e[33;1mssh -p $sshp $name@$ipadd"
-cat /dev/null >~/.bash_history
-cat /dev/null >~/.zsh_history
+ipadd=$(ifconfig eth0 | awk '/inet/ {print $2}' | cut -f2 -d ":" | awk 'NR==1 {print $1}')
+INFO 32 1 "Initialization is complete, please \e[31;1mreboot \e[32;1mthe system!!\n 系统初始化完成，请确认无误之后执行 \e[31;1mreboot \e[32;1m重启系统！\n================================\nssh端口号：\e[33;1m$sshp\n\e[32;1m服务器IP：\e[33;1m$ipadd\n\e[32;1m用户名：\e[33;1m$name\n\e[32;1m密码：\e[33;1m$passwd\n\e[32;1m请牢记您的密码!!!\n================================\n远程访问：\e[33;1mssh -p $sshp -i ~/.ssh/私钥文件 $name@$ipadd"
+cat /dev/null > ~/.zsh_history
+cat /dev/null > ~/.bash_history && history -c

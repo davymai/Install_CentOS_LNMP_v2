@@ -140,7 +140,7 @@ function INSTALL() {
     if [ $1 = tengine ]; then
         if [ -e "${INSTALL_PATH}/tengine/conf/nginx.conf" ]; then
             popd > /dev/null
-            rm -rf pcre-8.44 openssl-1.1.1h tengine-2.3.2 jemalloc-5.2.1 zlib-1.2.11
+            rm -rf pcre-8.44 openssl-1.1.1i tengine-2.3.2 jemalloc-5.2.1 zlib-1.2.11
         else
             rm -rf ${INSTALL_PATH}/tengine
             INFO 31 1 "Tengine install failed, Please Contact the author!"
@@ -148,25 +148,25 @@ function INSTALL() {
         fi
     fi
     if [ $1 = jemalloc ]; then
-        echo "/usr/local/env/jemalloc/lib" >> /etc/ld.so.conf
+        echo "/usr/local/jemalloc/lib" >> /etc/ld.so.conf
         /usr/sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = openssl ]; then
-        if [ -n "$(grep ^'export PKG_CONFIG_PATH=' /etc/profile)" -a -z "$(grep /usr/local/env/libzip /etc/profile)" ]; then
-            sed -i 's|export PKG_CONFIG_PATH=\(.*\)|export PKG_CONFIG_PATH=/usr/local/env/openssl/lib/pkgconfig/:\1|' /etc/profile
+        if [ -n "$(grep ^'export PKG_CONFIG_PATH=' /etc/profile)" -a -z "$(grep /usr/local/libzip /etc/profile)" ]; then
+            sed -i 's|export PKG_CONFIG_PATH=\(.*\)|export PKG_CONFIG_PATH=/usr/local/openssl/lib/pkgconfig/:\1|' /etc/profile
         fi
         . /etc/profile
         INFO 33 4 "Add $1 PKG_CONFIG_PATH to /etc/profile......"
-        echo "/usr/local/env/openssl/lib" >> /etc/ld.so.conf
+        echo "/usr/local/openssl/lib" >> /etc/ld.so.conf
         /usr/sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = libzip ]; then
-        if [ -n "$(grep ^'export PKG_CONFIG_PATH=' /etc/profile)" -a -z "$(grep /usr/local/env/libzip /etc/profile)" ]; then
-            sed -i 's|export PKG_CONFIG_PATH=\(.*\)|export PKG_CONFIG_PATH=/usr/local/env/libzip/lib64/pkgconfig/:\1|' /etc/profile
+        if [ -n "$(grep ^'export PKG_CONFIG_PATH=' /etc/profile)" -a -z "$(grep /usr/local/libzip /etc/profile)" ]; then
+            sed -i 's|export PKG_CONFIG_PATH=\(.*\)|export PKG_CONFIG_PATH=/usr/local/libzip/lib64/pkgconfig/:\1|' /etc/profile
         fi
         . /etc/profile
         INFO 33 4 "Add $1 PKG_CONFIG_PATH to /etc/profile......"
-        echo "/usr/local/env/libzip/lib64" >> /etc/ld.so.conf
+        echo "/usr/local/libzip/lib64" >> /etc/ld.so.conf
         /usr/sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = pcre ]; then
@@ -177,18 +177,18 @@ function INSTALL() {
     if [ $1 = libsodium ]; then
         ln -sf ${ENV_PATH}/libsodium/include/libsodium/* /usr/include/
         [ -d /usr/lib/pkgconfig ] && /bin/cp ${ENV_PATH}/libsodium/lib/pkgconfig/libsodium.pc /usr/lib/pkgconfig/
-        echo "/usr/local/env/libsodium/lib" >> /etc/ld.so.conf
+        echo "/usr/local/libsodium/lib" >> /etc/ld.so.conf
         /usr/sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
 
     fi
     if [ $1 = nettle ]; then
-        ln -s /usr/local/env/nettle/lib64/libnettle.so.8.0 /usr/lib64/
-        echo "/usr/local/env/nettle/lib64" >> /etc/ld.so.conf
+        ln -s /usr/local/nettle/lib64/libnettle.so.8.0 /usr/lib64/
+        echo "/usr/local/nettle/lib64" >> /etc/ld.so.conf
         /usr/sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = libevent ]; then
-        ln -s /usr/local/env/libevent/lib/libevent-2.1.so.7.0.1 /usr/lib64/
-        echo "/usr/local/env/libevent/lib" >> /etc/ld.so.conf
+        ln -s /usr/local/libevent/lib/libevent-2.1.so.7.0.1 /usr/lib64/
+        echo "/usr/local/libevent/lib" >> /etc/ld.so.conf
         /usr/sbin/ldconfig && INFO 33 4 "Add $1 library file to ld.so.conf......"
     fi
     if [ $1 = argon2 ]; then
@@ -446,7 +446,7 @@ function MOD_CASE() {
                     pushd ${SOURCE_PATH} > /dev/null
                     tar xzf jemalloc-5.2.1.tar.gz
                     tar xzf pcre-8.44.tar.gz
-                    tar xzf openssl-1.1.1h.tar.gz
+                    tar xzf openssl-1.1.1i.tar.gz
                     tar xzf zlib-1.2.11.tar.gz
                     popd > /dev/null
                     if [ -e "${ENV_PATH}/openssl/lib/libssl.a" ]; then
@@ -520,14 +520,14 @@ INSTALL_PATH="/server/lnmp"
 #LNMP配置文件的目录
 CONF_PATH="/data/lnmp/conf"
 #资源包安装目录
-ENV_PATH="/usr/local/env"
+ENV_PATH="/usr/local"
 #源码包存放目录
 SOURCE_PATH="$(
     cd $(dirname $0)
     pwd
 )/install_tar"
 #源码包列表
-TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz libssh2-1.9.0.tar.gz openssl-1.1.1h.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz nettle-3.6.tar.gz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz phpMyAdmin-5.0.4.tar.gz libsodium-1.0.18-stable.tar.gz argon2-20190702.tar.gz)
+TAR_NAME=(tengine-2.3.2.tar.gz jemalloc-5.2.1.tar.gz libssh2-1.9.0.tar.gz openssl-1.1.1i.tar.gz pcre-8.44.tar.gz zlib-1.2.11.tar.gz libzip-1.7.3.tar.gz mariadb-10.5.6.tar.gz php-7.4.11.tar.gz amqp-1.10.2.tgz imagick-3.4.4.tgz mcrypt-1.0.3.tgz memcache-4.0.5.2.tgz mongodb-1.8.1.tgz nettle-3.6.tar.gz php_redis-5.3.1.tgz ssh2-1.2.tgz swoole-4.5.4.tgz yaf-3.2.5.tgz yaml-2.1.0.tgz yar-2.1.2.tgz redis-6.0.8.tar.gz libevent-2.1.12.tar.gz memcached-1.6.7.tar.gz phpMyAdmin-5.0.4.tar.gz libsodium-1.0.18-stable.tar.gz argon2-20190702.tar.gz)
 #Nginx,Mysql,PHP,memcached,Redis yum安装依赖包
 HTTP_YUM="gcc gcc-c++ bzip2-devel"
 MYSQL_YUM="bison-devel libcurl-devel libarchive-devel boost-devel gcc gcc-c++ cmake ncurses-devel gnutls-devel libxml2-devel libaio-devel"
@@ -546,7 +546,7 @@ HTTP_PARAMETERS="\
 --with-http_dav_module --with-http_random_index_module --with-http_secure_link_module \
 --with-http_stub_status_module --with-http_addition_module \
 --with-jemalloc=../jemalloc-5.2.1 \
---with-openssl=../openssl-1.1.1h \
+--with-openssl=../openssl-1.1.1i \
 --with-zlib=../zlib-1.2.11 \
 --with-pcre=../pcre-8.44 \
 --http-client-body-temp-path=$INSTALL_PATH/tengine/tmp/client_body_temp \
@@ -564,7 +564,7 @@ PHP7_PARAMETERS="\
 --with-iconv --with-freetype --with-jpeg --with-zlib \
 --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-exif \
 --enable-sysvsem --enable-inline-optimization --with-curl --enable-mbregex \
---enable-mbstring --with-password-argon2 --with-sodium --enable-gd --with-openssl=/usr/local/env/openssl \
+--enable-mbstring --with-password-argon2 --with-sodium --enable-gd --with-openssl=/usr/local/openssl \
 --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-ftp --enable-intl --with-xsl \
 --with-gettext --with-zip --enable-soap --enable-pdo --enable-shared --enable-calendar \
 --enable-sysvshm --with-bz2 --with-kerberos --with-libdir --with-pdo-sqlite --with-pear --disable-debug
