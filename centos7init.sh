@@ -103,10 +103,6 @@ timezone_config() {
 
 system_update() {
     INFO 35 2 "*** Starting update system && install tools pakeage... ***\n        *** 正在启动更新系统 && 安装工具包... ***"
-    # del openssl
-    yum remove -y openssl
-    [ -e "/usr/local/bin/openssl" ] && rm -rf /usr/local/bin/openssl
-    [ -e "/usr/local/include/openssl" ] && rm -rf /usr/local/include/openssl
     curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
     yum -y upgrade
     command -v lsb_release > /dev/null 2>&1 || {
@@ -127,17 +123,22 @@ Install_openSSL() {
     if [ -e "${ENV_PATH}/openssl/lib/libssl.a" ]; then
         INFO 31 1 "OpenSSL is already installed!"
     else
+        # del openssl
+        yum remove -y openssl &&
+        [ -e "/usr/bin/openssl" ] && rm -rf /usr/bin/openssl
+        [ -e "/usr/local/bin/openssl" ] && rm -rf /usr/local/bin/openssl
+        [ -e "/usr/local/include/openssl" ] && rm -rf /usr/local/include/openssl
         pushd ${SOURCE_PATH} > /dev/null
         tar -zxvf ${SOURCE_PATH}/openssl-1.1.1i.tar.gz
         pushd openssl-1.1.1i > /dev/null
         make clean > /dev/null
-        ./config -Wl,-fPIC --prefix=${ENV_PATH}/openssl
+        ./config -Wl,-rpath=${ENV_PATH}/openssl/lib -fPIC --prefix=${ENV_PATH}/openssl --openssldir=${ENV_PATH}/openssl &&
         make depend
         make -j ${THREAD} && make install
-        ln -s ${ENV_PATH}/openssl/bin/openssl /usr/bin/openssl
-        ln -s ${ENV_PATH}/openssl/include/openssl /usr/include/openssl
-        ln -s ${ENV_PATH}/openssl/lib/libssl.so.1.1 /usr/lib64/libssl.so.1.1
-        ln -s ${ENV_PATH}/openssl/lib/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
+        ln -s ${ENV_PATH}/openssl/bin/openssl /usr/bin/openssl &&
+        ln -s ${ENV_PATH}/openssl/include/openssl /usr/include/openssl &&
+        ln -s ${ENV_PATH}/openssl/lib/libssl.so.1.1 /usr/lib64/libssl.so.1.1 &&
+        ln -s ${ENV_PATH}/openssl/lib/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1 &&
         if [ -f "${ENV_PATH}/openssl/lib/libcrypto.a" ]; then
             INFO 33 2 "OpenSSL installed successfully!......"
             rm -rf ${SOURCE_PATH}/openssl-1.1.1i
