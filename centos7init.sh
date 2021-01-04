@@ -376,10 +376,21 @@ disable_serivces() {
 #Create OPS user
 user_create() {
     INFO 35 2 "Create User\n 创建用户"
-    read -p "输入用户名：" name
-    read -p "输入密码：" -s -r passwd
-    read -p "输入您的公钥(*重启后仅允许密钥登陆，禁止root用户登陆)：" rsa
-    read -p "输入ssh端口号：" sshp
+    printf "输入用户名：\n"
+    read name
+    printf "输入密码：\n"
+    read pass
+    printf "再次确认密码：\n"
+    read passwd
+    if [ $pass != $passwd ]
+    then
+        printf "两次输入有误\n"
+        user_create
+    else
+    printf "输入您的公钥(*重启后仅允许密钥登陆，禁止root用户登陆)：\n"
+    read rsa
+    printf "输入ssh端口号：\n"
+    read sshp
     useradd -G wheel $name && echo $Password | passwd --stdin $name &> /dev/null
     cd /home/$name && mkdir .ssh && chown $name:$name .ssh && chmod 700 .ssh && cd .ssh
     echo "$rsa" >> authorized_keys && chown $name:$name authorized_keys && chmod 600 authorized_keys
